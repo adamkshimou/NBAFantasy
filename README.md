@@ -4,7 +4,7 @@ AI assistant for Sleeper fantasy NBA leagues: lineup, trade, and waiver suggesti
 
 ## Status
 
-Backend skeleton. Frontend not started.
+Backend skeleton plus a first Expo (React Native) app: connect, pick a league, view team and free agents, ask for AI advice.
 
 ## Backend
 
@@ -26,9 +26,20 @@ Docs at http://localhost:8000/docs
 | `GET /api/leagues/{id}/free-agents` | Unrostered players by 24h add trend |
 | `POST /api/leagues/{id}/advice` | AI advice, `kind`: `lineup`, `trades`, `waivers` |
 
+## Mobile app (Expo)
+
+```bash
+cd mobile
+npm install
+cp .env.example .env        # point EXPO_PUBLIC_API_URL at the backend
+npm run web                 # browser
+npx expo start              # phone via Expo Go (use your computer's LAN IP in .env)
+npm run typecheck
+```
+
 ## Not built yet
 
 - Player stats, projections, and NBA schedule (advice currently sees rosters, injuries, scoring settings, and add trends only)
 - Postgres (compose file is ready; nothing is persisted yet)
 - Accounts and saved leagues
-- Frontend
+- Navigation library (Expo Router), saved username, app icons and store setup
