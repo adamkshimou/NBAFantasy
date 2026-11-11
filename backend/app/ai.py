@@ -2,7 +2,13 @@
 each kind is a prompt over the same league context."""
 import json
 
+import httpx
+
 from .config import settings
+
+class AIError(Exception):
+    pass
+
 
 SYSTEM = (
     "You are a fantasy basketball assistant for a Sleeper NBA league. "
@@ -30,15 +36,11 @@ PROMPTS = {
 }
 
 
-async def advise(kind: str, context: dict) -> dict:
-    if kind not in PROMPTS:
-        raise ValueError(f"Unknown advice kind: {kind}")
-    if not settings.anthropic_api_key:
-        return {
-            "kind": kind,
-            "ai": False,
-            "advice": "AI is not configured. Set ANTHROPIC_API_KEY to enable suggestions.",
-        }
+def _off(kind: str, why: str) -> dict:
+    return {"kind": kind, "ai": False, "advice": f"AI is not configured. {why}"}
+
+
+async def _anthropic(prompt: str) -> str:
     from anthropic import AsyncAnthropic
 
     client = AsyncAnthropic(api_key=settings.anthropic_api_key)
@@ -46,10 +48,41 @@ async def advise(kind: str, context: dict) -> dict:
         model=settings.ai_model,
         max_tokens=1500,
         system=SYSTEM,
-        messages=[{
-            "role": "user",
-            "content": f"{PROMPTS[kind]}\n\nLeague data (JSON):\n{json.dumps(context)}",
-        }],
+        messages=[{"role": "user", "content": prompt}],
     )
-    text = "".join(b.text for b in msg.content if b.type == "text")
+    return "".join(b.text for b in msg.content if b.type == "text")
+
+
+async def _openai_compatible(prompt: str, transport: httpx.AsyncBaseTransport | None = None) -> str:
+    headers = {"Authorization": f"Bearer {settings.ai_api_key}"} if settings.ai_api_key else {}
+    async with httpx.AsyncClient(timeout=180, transport=transport) as http:
+        resp = await http.post(
+            settings.ai_base_url.rstrip("/") + "/chat/completions",
+            headers=headers,
+            json={
+                "model": settings.ai_model,
+                "messages": [
+                    {"role": "system", "content": SYSTEM},
+                    {"role": "user", "content": prompt},
+                ],
+            },
+        )
+    if resp.status_code >= 400:
+        raise AIError(f"AI provider returned {resp.status_code}: {resp.text[:300]}")
+    return resp.json()["choices"][0]["message"]["content"]
+
+
+async def advise(kind: str, context: dict) -> dict:
+    if kind not in PROMPTS:
+        raise ValueError(f"Unknown advice kind: {kind}")
+    data = json.dumps(context, separators=(",", ":"))
+    prompt = f"{PROMPTS[kind]}\n\nLeague data (JSON):\n{data}"
+    if settings.ai_provider == "openai":
+        if not settings.ai_base_url:
+            return _off(kind, "Set AI_BASE_URL (and AI_API_KEY if the provider needs one).")
+        text = await _openai_compatible(prompt)
+    else:
+        if not settings.anthropic_api_key:
+            return _off(kind, "Set ANTHROPIC_API_KEY, or switch AI_PROVIDER to openai.")
+        text = await _anthropic(prompt)
     return {"kind": kind, "ai": True, "advice": text}

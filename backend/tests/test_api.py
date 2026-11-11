@@ -71,6 +71,7 @@ def test_free_agents_exclude_rostered(client):
 
 def test_advice_without_key_degrades(client, monkeypatch):
     from app.config import settings
+    monkeypatch.setattr(settings, "ai_provider", "anthropic")
     monkeypatch.setattr(settings, "anthropic_api_key", "")
     r = client.post("/api/leagues/L1/advice", json={"user_id": "u1", "kind": "lineup"})
     assert r.status_code == 200 and r.json()["ai"] is False
@@ -79,3 +80,30 @@ def test_advice_without_key_degrades(client, monkeypatch):
 def test_advice_rejects_bad_kind(client):
     r = client.post("/api/leagues/L1/advice", json={"user_id": "u1", "kind": "nope"})
     assert r.status_code == 422
+
+
+def test_advice_via_openai_compatible_provider(client, monkeypatch):
+    import json
+    from app import ai
+    from app.config import settings
+
+    seen = {}
+
+    def fake_llm(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        seen["auth"] = request.headers.get("authorization")
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"choices": [{"message": {"content": "Start Starter One."}}]})
+
+    monkeypatch.setattr(settings, "ai_provider", "openai")
+    monkeypatch.setattr(settings, "ai_base_url", "http://llm.test/v1/")
+    monkeypatch.setattr(settings, "ai_api_key", "k")
+    monkeypatch.setattr(settings, "ai_model", "m")
+    real = ai._openai_compatible
+    monkeypatch.setattr(ai, "_openai_compatible", lambda p: real(p, httpx.MockTransport(fake_llm)))
+
+    r = client.post("/api/leagues/L1/advice", json={"user_id": "u1", "kind": "waivers"})
+    assert r.json() == {"kind": "waivers", "ai": True, "advice": "Start Starter One."}
+    assert seen["url"] == "http://llm.test/v1/chat/completions"
+    assert seen["auth"] == "Bearer k" and seen["body"]["model"] == "m"
+    assert "Free Four" in seen["body"]["messages"][1]["content"]

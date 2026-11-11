@@ -31,6 +31,11 @@ async def sleeper_error(_: Request, exc: SleeperError):
     return JSONResponse(status_code=exc.status, content={"detail": str(exc)})
 
 
+@app.exception_handler(ai.AIError)
+async def ai_error(_: Request, exc: ai.AIError):
+    return JSONResponse(status_code=502, content={"detail": str(exc)})
+
+
 @app.get("/api/health")
 async def health():
     return {"ok": True}

@@ -12,7 +12,7 @@ Backend skeleton plus a first Expo (React Native) app: connect, pick a league, v
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env        # add ANTHROPIC_API_KEY for AI advice
+cp .env.example .env        # pick an AI option inside (free ones included)
 uvicorn app.main:app --reload
 pytest
 ```
