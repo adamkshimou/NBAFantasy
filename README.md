@@ -4,7 +4,7 @@ AI assistant for Sleeper fantasy NBA leagues: lineup, trade, and waiver suggesti
 
 ## Status
 
-Backend skeleton plus a first Expo (React Native) app: connect, pick a league, view team and free agents, ask for AI advice.
+Backend plus an Expo (React Native) app with a welcome screen and four tabs: Home, Trades, Waivers, and Add team.
 
 ## Backend
 
@@ -37,9 +37,11 @@ npx expo start              # phone via Expo Go (use your computer's LAN IP in .
 npm run typecheck
 ```
 
+Screens live in `mobile/src/app/` (Expo Router). Connected teams are saved on the device.
+
 ## Not built yet
 
 - Player stats, projections, and NBA schedule (advice currently sees rosters, injuries, scoring settings, and add trends only)
 - Postgres (compose file is ready; nothing is persisted yet)
 - Accounts and saved leagues
-- Navigation library (Expo Router), saved username, app icons and store setup
+- Trade analyzer (pick players to give and get), accounts and sign-in, app icons and store setup
