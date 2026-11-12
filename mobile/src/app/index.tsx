@@ -132,7 +132,7 @@ const s = StyleSheet.create({
   pillDarkText: { color: "#FFFFFF", fontWeight: "700", fontSize: 13 },
   badge: { width: 44, height: 44, borderRadius: 22, backgroundColor: day.ink, alignItems: "center", justifyContent: "center" },
   header: { position: "absolute", left: 22, flexDirection: "row", alignItems: "center", gap: 10 },
-  logo: { width: 40, height: 40, borderRadius: 12, backgroundColor: day.rim, alignItems: "center", justifyContent: "center" },
+  logo: { width: 40, height: 40, borderRadius: 12, backgroundColor: "#6495ED", alignItems: "center", justifyContent: "center" },
   logoText: { color: "#FFFFFF", fontFamily: font.display, fontSize: 24, lineHeight: 28 },
   wordmark: { color: day.ink, fontFamily: font.display, fontSize: 24 },
   bottom: { flex: 1, justifyContent: "flex-end", paddingHorizontal: 24 },

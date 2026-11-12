@@ -1,4 +1,4 @@
-// In-app palette: deep navy like a night game, with hardwood orange as the one accent.
+// In-app palette: deep navy like a night game, with cornflower blue as the one accent.
 export const c = {
   bg: "#0D1321",
   surface: "#161E31",
@@ -6,7 +6,7 @@ export const c = {
   line: "#28324D",
   text: "#F1F3F8",
   muted: "#8A94AD",
-  accent: "#F7A23B",
+  accent: "#6495ED",
   ink: "#15171C",
   good: "#5AD39A",
   bad: "#F2646A",
